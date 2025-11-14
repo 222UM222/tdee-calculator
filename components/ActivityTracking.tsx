@@ -16,8 +16,8 @@ interface ActivityTrackingProps {
   gender: Gender;
   age: number;
   weightKg: number;
-  dailySteps: number;
-  setDailySteps: (steps: number) => void;
+  dailySteps: string;
+  setDailySteps: (steps: string) => void;
   activities: Activity[];
   setActivities: (activities: Activity[]) => void;
   liftingDuration: number;
@@ -82,21 +82,10 @@ export function ActivityTracking({
         </div>
         <Input
           id="steps"
-          type="number"
+          type="text"
           value={dailySteps}
-          onChange={(e) => {
-            if (e.target.value === '') {
-              setDailySteps(0);
-            } else {
-              const val = parseInt(e.target.value);
-              if (!isNaN(val) && val >= 0 && val <= 50000) {
-                setDailySteps(val);
-              }
-            }
-          }}
-          min={0}
-          max={50000}
-          step={100}
+          onChange={(e) => setDailySteps(e.target.value)}
+          placeholder="e.g., 8000"
           className="w-full"
         />
       </div>

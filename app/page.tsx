@@ -19,17 +19,17 @@ export interface Activity {
 export default function Home() {
   // Profile state
   const [gender, setGender] = useState<Gender>('male');
-  const [age, setAge] = useState<number>(30);
+  const [age, setAge] = useState<string>('');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('imperial');
   const [heightFeet, setHeightFeet] = useState<number>(5);
   const [heightInches, setHeightInches] = useState<number>(10);
-  const [heightCm, setHeightCm] = useState<number>(178);
-  const [weightLbs, setWeightLbs] = useState<number>(180);
-  const [weightKg, setWeightKg] = useState<number>(82);
-  const [bodyFat, setBodyFat] = useState<number | undefined>(undefined);
+  const [heightCm, setHeightCm] = useState<string>('');
+  const [weightLbs, setWeightLbs] = useState<string>('');
+  const [weightKg, setWeightKg] = useState<string>('');
+  const [bodyFat, setBodyFat] = useState<string>('');
 
   // Activity state
-  const [dailySteps, setDailySteps] = useState<number>(8000);
+  const [dailySteps, setDailySteps] = useState<string>('');
   const [activities, setActivities] = useState<Activity[]>([]);
   const [liftingDuration, setLiftingDuration] = useState<number>(0);
   const [liftingIntensity, setLiftingIntensity] = useState<LiftingIntensity>('moderate');
@@ -49,34 +49,51 @@ export default function Home() {
   useEffect(() => {
     if (unitSystem === 'imperial') {
       const cm = convertUnits.feetInchesToCm(heightFeet, heightInches);
-      setHeightCm(Math.round(cm));
-    } else {
-      const { feet, inches } = convertUnits.cmToFeetInches(heightCm);
-      setHeightFeet(feet);
-      setHeightInches(inches);
+      setHeightCm(Math.round(cm).toString());
+    } else if (heightCm) {
+      const cm = parseFloat(heightCm);
+      if (!isNaN(cm)) {
+        const { feet, inches } = convertUnits.cmToFeetInches(cm);
+        setHeightFeet(feet);
+        setHeightInches(inches);
+      }
     }
   }, [heightFeet, heightInches, heightCm, unitSystem]);
 
   // Sync weight conversions
   useEffect(() => {
-    if (unitSystem === 'imperial') {
-      setWeightKg(Math.round(convertUnits.lbsToKg(weightLbs)));
-    } else {
-      setWeightLbs(Math.round(convertUnits.kgToLbs(weightKg)));
+    if (unitSystem === 'imperial' && weightLbs) {
+      const lbs = parseFloat(weightLbs);
+      if (!isNaN(lbs)) {
+        setWeightKg(Math.round(convertUnits.lbsToKg(lbs)).toString());
+      }
+    } else if (unitSystem === 'metric' && weightKg) {
+      const kg = parseFloat(weightKg);
+      if (!isNaN(kg)) {
+        setWeightLbs(Math.round(convertUnits.kgToLbs(kg)).toString());
+      }
     }
   }, [weightLbs, weightKg, unitSystem]);
 
   // Calculate everything when inputs change
   useEffect(() => {
-    // Calculate BMR
-    const currentHeightCm = unitSystem === 'imperial' 
-      ? convertUnits.feetInchesToCm(heightFeet, heightInches)
-      : heightCm;
-    const currentWeightKg = unitSystem === 'imperial'
-      ? convertUnits.lbsToKg(weightLbs)
-      : weightKg;
+    // Parse values
+    const ageNum = parseFloat(age) || 0;
+    const heightCmNum = parseFloat(heightCm) || 0;
+    const weightLbsNum = parseFloat(weightLbs) || 0;
+    const weightKgNum = parseFloat(weightKg) || 0;
+    const bodyFatNum = parseFloat(bodyFat) || undefined;
+    const dailyStepsNum = parseFloat(dailySteps) || 0;
 
-    const calculatedBMR = calculateBMR(gender, age, currentHeightCm, currentWeightKg, bodyFat);
+    // Calculate BMR
+    const currentHeightCm = unitSystem === 'imperial'
+      ? convertUnits.feetInchesToCm(heightFeet, heightInches)
+      : heightCmNum;
+    const currentWeightKg = unitSystem === 'imperial'
+      ? convertUnits.lbsToKg(weightLbsNum)
+      : weightKgNum;
+
+    const calculatedBMR = calculateBMR(gender, ageNum, currentHeightCm, currentWeightKg, bodyFatNum);
     setBmr(calculatedBMR);
 
     // Calculate exercise calories from activities
@@ -84,9 +101,9 @@ export default function Home() {
     let totalCardioSteps = 0;
 
     activities.forEach(activity => {
-      const calories = calculateZoneCalories(gender, age, currentWeightKg, activity.zone, activity.duration);
+      const calories = calculateZoneCalories(gender, ageNum, currentWeightKg, activity.zone, activity.duration);
       totalExerciseCalories += calories;
-      
+
       // Estimate steps from cardio (rough estimate based on zone)
       const intensity = activity.zone <= 2 ? 'low' : activity.zone <= 3 ? 'moderate' : 'high';
       const stepsPerMin = intensity === 'low' ? 100 : intensity === 'moderate' ? 140 : 180;
@@ -94,7 +111,7 @@ export default function Home() {
     });
 
     // Add lifting calories
-    const liftingCals = liftingDuration > 0 
+    const liftingCals = liftingDuration > 0
       ? calculateLiftingCalories(currentWeightKg, liftingIntensity, liftingDuration)
       : 0;
     setLiftingCalories(liftingCals);
@@ -102,7 +119,7 @@ export default function Home() {
     setExerciseCalories(totalExerciseCalories);
 
     // Calculate NEAT from steps
-    const neat = calculateNEATFromSteps(dailySteps, totalCardioSteps, currentHeightCm, currentWeightKg);
+    const neat = calculateNEATFromSteps(dailyStepsNum, totalCardioSteps, currentHeightCm, currentWeightKg);
     setNeatCalories(neat);
 
     // Calculate final TDEE
@@ -118,15 +135,15 @@ export default function Home() {
       try {
         const state = JSON.parse(saved);
         setGender(state.gender || 'male');
-        setAge(state.age || 30);
+        setAge(state.age?.toString() || '');
         setUnitSystem(state.unitSystem || 'imperial');
         setHeightFeet(state.heightFeet || 5);
         setHeightInches(state.heightInches || 10);
-        setHeightCm(state.heightCm || 178);
-        setWeightLbs(state.weightLbs || 180);
-        setWeightKg(state.weightKg || 82);
-        setBodyFat(state.bodyFat);
-        setDailySteps(state.dailySteps || 8000);
+        setHeightCm(state.heightCm?.toString() || '');
+        setWeightLbs(state.weightLbs?.toString() || '');
+        setWeightKg(state.weightKg?.toString() || '');
+        setBodyFat(state.bodyFat?.toString() || '');
+        setDailySteps(state.dailySteps?.toString() || '');
         setActivities(state.activities || []);
         setLiftingDuration(state.liftingDuration || 0);
         setLiftingIntensity(state.liftingIntensity || 'moderate');
@@ -196,8 +213,8 @@ export default function Home() {
 
             <ActivityTracking
               gender={gender}
-              age={age}
-              weightKg={unitSystem === 'imperial' ? convertUnits.lbsToKg(weightLbs) : weightKg}
+              age={parseFloat(age) || 0}
+              weightKg={unitSystem === 'imperial' ? convertUnits.lbsToKg(parseFloat(weightLbs) || 0) : (parseFloat(weightKg) || 0)}
               dailySteps={dailySteps}
               setDailySteps={setDailySteps}
               activities={activities}
@@ -229,10 +246,10 @@ export default function Home() {
               exerciseCalories={exerciseCalories}
               neatCalories={neatCalories}
               gender={gender}
-              age={age}
-              heightCm={unitSystem === 'imperial' ? convertUnits.feetInchesToCm(heightFeet, heightInches) : heightCm}
-              weightKg={unitSystem === 'imperial' ? convertUnits.lbsToKg(weightLbs) : weightKg}
-              bodyFat={bodyFat}
+              age={parseFloat(age) || 0}
+              heightCm={unitSystem === 'imperial' ? convertUnits.feetInchesToCm(heightFeet, heightInches) : (parseFloat(heightCm) || 0)}
+              weightKg={unitSystem === 'imperial' ? convertUnits.lbsToKg(parseFloat(weightLbs) || 0) : (parseFloat(weightKg) || 0)}
+              bodyFat={parseFloat(bodyFat) || undefined}
             />
           </div>
         </div>

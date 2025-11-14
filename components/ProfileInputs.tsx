@@ -12,22 +12,22 @@ import { HelpCircle } from 'lucide-react';
 interface ProfileInputsProps {
   gender: Gender;
   setGender: (gender: Gender) => void;
-  age: number;
-  setAge: (age: number) => void;
+  age: string;
+  setAge: (age: string) => void;
   unitSystem: UnitSystem;
   setUnitSystem: (system: UnitSystem) => void;
   heightFeet: number;
   setHeightFeet: (feet: number) => void;
   heightInches: number;
   setHeightInches: (inches: number) => void;
-  heightCm: number;
-  setHeightCm: (cm: number) => void;
-  weightLbs: number;
-  setWeightLbs: (lbs: number) => void;
-  weightKg: number;
-  setWeightKg: (kg: number) => void;
-  bodyFat?: number;
-  setBodyFat: (bf: number | undefined) => void;
+  heightCm: string;
+  setHeightCm: (cm: string) => void;
+  weightLbs: string;
+  setWeightLbs: (lbs: string) => void;
+  weightKg: string;
+  setWeightKg: (kg: string) => void;
+  bodyFat: string;
+  setBodyFat: (bf: string) => void;
 }
 
 export function ProfileInputs({
@@ -101,16 +101,10 @@ export function ProfileInputs({
         <Label htmlFor="age" className="mb-2 block">Age (years)</Label>
         <Input
           id="age"
-          type="number"
+          type="text"
           value={age}
-          onChange={(e) => {
-            const val = parseInt(e.target.value);
-            if (!isNaN(val) && validation.age(val)) {
-              setAge(val);
-            }
-          }}
-          min={15}
-          max={100}
+          onChange={(e) => setAge(e.target.value)}
+          placeholder="e.g., 30"
           className="w-full"
         />
       </div>
@@ -151,18 +145,11 @@ export function ProfileInputs({
           <div>
             <Input
               id="height-cm"
-              type="number"
+              type="text"
               value={heightCm}
-              onChange={(e) => {
-                const val = parseInt(e.target.value);
-                if (!isNaN(val) && validation.heightCm(val)) {
-                  setHeightCm(val);
-                }
-              }}
-              min={120}
-              max={230}
+              onChange={(e) => setHeightCm(e.target.value)}
+              placeholder="e.g., 175"
               className="w-full"
-              placeholder="cm"
             />
           </div>
         )}
@@ -175,28 +162,16 @@ export function ProfileInputs({
         </Label>
         <Input
           id="weight"
-          type="number"
+          type="text"
           value={unitSystem === 'imperial' ? weightLbs : weightKg}
           onChange={(e) => {
-            const val = parseInt(e.target.value);
-            if (e.target.value === '' || isNaN(val)) {
-              // Allow clearing but set to minimum valid value
-              if (unitSystem === 'imperial') {
-                setWeightLbs(80);
-              } else {
-                setWeightKg(35);
-              }
+            if (unitSystem === 'imperial') {
+              setWeightLbs(e.target.value);
             } else {
-              // Allow any number input, browser min/max will constrain
-              if (unitSystem === 'imperial') {
-                setWeightLbs(val);
-              } else {
-                setWeightKg(val);
-              }
+              setWeightKg(e.target.value);
             }
           }}
-          min={unitSystem === 'imperial' ? 80 : 35}
-          max={unitSystem === 'imperial' ? 500 : 225}
+          placeholder={unitSystem === 'imperial' ? 'e.g., 180' : 'e.g., 75'}
           className="w-full"
         />
       </div>
@@ -215,16 +190,9 @@ export function ProfileInputs({
         <Input
           id="bodyfat"
           type="text"
-          value={bodyFat || ''}
-          onChange={(e) => {
-            const val = parseFloat(e.target.value);
-            if (e.target.value === '') {
-              setBodyFat(undefined);
-            } else if (!isNaN(val) && val >= 0 && val <= 99) {
-              setBodyFat(val);
-            }
-          }}
-          placeholder="Leave blank if unknown"
+          value={bodyFat}
+          onChange={(e) => setBodyFat(e.target.value)}
+          placeholder="e.g., 15 (leave blank if unknown)"
           className="w-full"
         />
       </div>
