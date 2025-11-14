@@ -179,13 +179,19 @@ export function ProfileInputs({
           value={unitSystem === 'imperial' ? weightLbs : weightKg}
           onChange={(e) => {
             const val = parseInt(e.target.value);
-            if (!isNaN(val)) {
+            if (e.target.value === '' || isNaN(val)) {
+              // Allow clearing but set to minimum valid value
+              if (unitSystem === 'imperial') {
+                setWeightLbs(80);
+              } else {
+                setWeightKg(35);
+              }
+            } else {
+              // Allow any number input, browser min/max will constrain
               if (unitSystem === 'imperial') {
                 setWeightLbs(val);
               } else {
-                if (validation.weightKg(val)) {
-                  setWeightKg(val);
-                }
+                setWeightKg(val);
               }
             }
           }}
@@ -214,7 +220,7 @@ export function ProfileInputs({
             const val = parseFloat(e.target.value);
             if (e.target.value === '') {
               setBodyFat(undefined);
-            } else if (!isNaN(val) && validation.bodyFat(val)) {
+            } else if (!isNaN(val) && val >= 0 && val <= 99) {
               setBodyFat(val);
             }
           }}
