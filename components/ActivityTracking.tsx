@@ -85,9 +85,13 @@ export function ActivityTracking({
           type="number"
           value={dailySteps}
           onChange={(e) => {
-            const val = parseInt(e.target.value);
-            if (!isNaN(val) && val >= 0 && val <= 50000) {
-              setDailySteps(val);
+            if (e.target.value === '') {
+              setDailySteps(0);
+            } else {
+              const val = parseInt(e.target.value);
+              if (!isNaN(val) && val >= 0 && val <= 50000) {
+                setDailySteps(val);
+              }
             }
           }}
           min={0}

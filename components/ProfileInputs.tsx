@@ -208,7 +208,7 @@ export function ProfileInputs({
         </div>
         <Input
           id="bodyfat"
-          type="number"
+          type="text"
           value={bodyFat || ''}
           onChange={(e) => {
             const val = parseFloat(e.target.value);
@@ -218,9 +218,6 @@ export function ProfileInputs({
               setBodyFat(val);
             }
           }}
-          min={5}
-          max={50}
-          step={0.1}
           placeholder="Leave blank if unknown"
           className="w-full"
         />
